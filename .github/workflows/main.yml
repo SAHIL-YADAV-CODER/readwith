@@ -8,9 +8,8 @@ on:
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install lftp
@@ -18,19 +17,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y lftp
 
-      - name: Upload files to InfinityFree
+      - name: Upload files to InfinityFree via lftp
         run: |
           HOST="ftpupload.net"
           USER="if0_40614929"
           PASS="rduRkb3BFS"
           REMOTE_PATH="/htdocs/"
 
-          echo "Starting deploy to $HOST -> $REMOTE_PATH"
+          echo "Deploying to ${HOST}${REMOTE_PATH} ..."
 
-          # Use lftp to mirror local repo to remote path.
-          # The heredoc closing token LFTP_CMDS MUST be at column 1 (no indentation).
-          lftp -u "$USER","$PASS" "$HOST" <<'LFTP_CMDS'
-          set ssl:verify-certificate no
-          mirror -R --only-newer --parallel=2 --delete . "$REMOTE_PATH"
-          quit
-LFTP_CMDS
+          # lftp -u "user","pass" host -e "commands; quit"
+          # - set ssl:verify-certificate no  (if your host uses a self-signed cert)
+          # - mirror -R ... uploads local repo to remote path
+          # Note: remove --delete if you don't want deletions on remote
+          lftp -u "${USER}","${PASS}" "${HOST}" -e "set ssl:verify-certificate no; mirror -R --only-newer --parallel=2 --delete . \"${REMOTE_PATH}\"; quit"
