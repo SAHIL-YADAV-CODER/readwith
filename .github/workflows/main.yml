@@ -1,0 +1,26 @@
+name: Deploy to InfinityFree (Direct FTP Credentials)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Upload files to InfinityFree
+        run: |
+          lftp -u "if0_40614929","rduRkb3BFS" "ftpupload.net" <<EOF
+          set ssl:verify-certificate no
+          mirror -R --only-newer --parallel=2 --delete \
+            . /htdocs/
+          quit
+EOF
