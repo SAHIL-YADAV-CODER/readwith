@@ -14,13 +14,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
 
       - name: Upload files to InfinityFree
         run: |
-          lftp -u "if0_40614929","rduRkb3BFS" "ftpupload.net" <<EOF
+          HOST="ftpupload.net"
+          USER="if0_40614929"
+          PASS="rduRkb3BFS"
+          REMOTE_PATH="/htdocs/"
+
+          echo "Starting deploy to $HOST -> $REMOTE_PATH"
+
+          # Use lftp to mirror local repo to remote path.
+          # The heredoc closing token LFTP_CMDS MUST be at column 1 (no indentation).
+          lftp -u "$USER","$PASS" "$HOST" <<'LFTP_CMDS'
           set ssl:verify-certificate no
-          mirror -R --only-newer --parallel=2 --delete \
-            . /htdocs/
+          mirror -R --only-newer --parallel=2 --delete . "$REMOTE_PATH"
           quit
-EOF
+LFTP_CMDS
